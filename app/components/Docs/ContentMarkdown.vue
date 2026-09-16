@@ -19,9 +19,8 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const router = useRouter()
     const runtimeConfig = useRuntimeConfig()
-    const baseURL = runtimeConfig.app.baseURL 
+    const baseURL = runtimeConfig.app.baseURL || '/'
 
     function renderNode(node: MarkdownNode, slotKey?: number): VNode | string {
       if (typeof node === 'string') {
@@ -40,11 +39,7 @@ export default defineComponent({
 
       if (tag === 'a' && typeof newAttrs.href === 'string' && internalHref(newAttrs.href)) {
         const trimmedHref = newAttrs.href.trim()
-
-        try {
-          const resolved = router.resolve(trimmedHref)
-          newAttrs.href = resolved.href
-        } catch {
+        if (!trimmedHref.startsWith(baseURL)) {
           newAttrs.href = withBase(trimmedHref, baseURL)
         }
       }
