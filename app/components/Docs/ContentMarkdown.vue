@@ -48,8 +48,9 @@ export default defineComponent({
         .map((child: MarkdownNode, i: number) => renderNode(child, i))
         .filter((child) => child !== null && child !== '' && child !== undefined)
 
-      if (tag === 'a' && typeof attrs?.href === 'string' && internalHref(attrs.href)) {
-        attrs.href = router.resolve(attrs.href).href
+      const newAttrs = { ...attrs }
+      if (tag === 'a' && typeof newAttrs.href === 'string' && internalHref(newAttrs.href)) {
+        newAttrs.href = router.resolve(newAttrs.href).href
       }
 
       return h(tag, { key: slotKey, ...(attrs ?? {}) }, rawChildren)
