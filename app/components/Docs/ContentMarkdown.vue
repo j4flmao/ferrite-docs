@@ -1,27 +1,13 @@
 <script lang="ts">
 import { defineComponent, h, type VNode, type PropType } from 'vue'
 import type { MarkdownDocument as ComarkDocument } from 'comark'
+import { withBase } from 'ufo'
 
 type MarkdownNode = string | any[]
 
-function renderNode(node: MarkdownNode, slotKey?: number): VNode | string {
-  if (typeof node === 'string') {
-    return node
-  }
-  if (!Array.isArray(node) || node.length === 0) {
-    return ''
-  }
-
-  const [tag, attrs, ...children] = node
-  const rawChildren: Array<VNode | string> = (children ?? [])
-    .map((child: MarkdownNode, i: number) => renderNode(child, i))
-    .filter((child) => child !== null && child !== '' && child !== undefined)
-
-  return h(tag, { key: slotKey, ...(attrs ?? {}) }, rawChildren)
-}
-
 function internalHref(href: string) {
-  return href.startsWith('/') && !href.startsWith('//')
+  const cleanHref = href.trim()
+  return cleanHref.startsWith('/') && !cleanHref.startsWith('//')
 }
 
 export default defineComponent({
@@ -34,6 +20,8 @@ export default defineComponent({
   },
   setup(props) {
     const router = useRouter()
+    const runtimeConfig = useRuntimeConfig()
+    const baseURL = runtimeConfig.app.baseURL 
 
     function renderNode(node: MarkdownNode, slotKey?: number): VNode | string {
       if (typeof node === 'string') {
@@ -48,12 +36,20 @@ export default defineComponent({
         .map((child: MarkdownNode, i: number) => renderNode(child, i))
         .filter((child) => child !== null && child !== '' && child !== undefined)
 
-      const newAttrs = { ...attrs }
+      const newAttrs = { ...(attrs ?? {}) }
+
       if (tag === 'a' && typeof newAttrs.href === 'string' && internalHref(newAttrs.href)) {
-        newAttrs.href = router.resolve(newAttrs.href).href
+        const trimmedHref = newAttrs.href.trim()
+
+        try {
+          const resolved = router.resolve(trimmedHref)
+          newAttrs.href = resolved.href
+        } catch {
+          newAttrs.href = withBase(trimmedHref, baseURL)
+        }
       }
 
-      return h(tag, { key: slotKey, ...(attrs ?? {}) }, rawChildren)
+      return h(tag, { key: slotKey, ...newAttrs }, rawChildren)
     }
 
     return () => {
