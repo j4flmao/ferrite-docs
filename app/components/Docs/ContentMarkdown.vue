@@ -1,7 +1,6 @@
 <script lang="ts">
 import { defineComponent, h, type VNode, type PropType } from 'vue'
 import type { MarkdownDocument as ComarkDocument } from 'comark'
-import { withBase } from 'ufo'
 
 type MarkdownNode = string | any[]
 
@@ -19,6 +18,7 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const router = useRouter()
     const runtimeConfig = useRuntimeConfig()
     const baseURL = runtimeConfig.app.baseURL || '/'
 
@@ -35,13 +35,19 @@ export default defineComponent({
         .map((child: MarkdownNode, i: number) => renderNode(child, i))
         .filter((child) => child !== null && child !== '' && child !== undefined)
 
+
       const newAttrs = { ...(attrs ?? {}) }
 
       if (tag === 'a' && typeof newAttrs.href === 'string' && internalHref(newAttrs.href)) {
-        const trimmedHref = newAttrs.href.trim()
-        if (!trimmedHref.startsWith(baseURL)) {
-          newAttrs.href = withBase(trimmedHref, baseURL)
+        let cleanHref = newAttrs.href.trim()
+
+
+        if (baseURL !== '/' && cleanHref.startsWith(baseURL)) {
+          cleanHref = cleanHref.slice(baseURL.length - 1)
         }
+
+        const resolved = router.resolve(cleanHref)
+        newAttrs.href = resolved.href
       }
 
       return h(tag, { key: slotKey, ...newAttrs }, rawChildren)
