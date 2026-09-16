@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Missing document slug' })
   }
 
-  const safeSlug = decodeURIComponent(slugParam).replace(/\.\./g, '').trim()
+  const safeSlug = decodeURIComponent(slugParam).replace(/\.\./g, '').replace(/\/+$/, '').trim()
   const doc = await loadDoc(safeSlug)
 
   const entry = findFlatDoc(safeSlug)

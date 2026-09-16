@@ -9,10 +9,8 @@ const route = useRoute()
 
 const slug = computed(() => {
   const segments = route.params.slug
-  if (Array.isArray(segments)) {
-    return segments.join('/')
-  }
-  return segments ? String(segments) : ''
+  const raw = Array.isArray(segments) ? segments.join('/') : (segments ? String(segments) : '')
+  return raw.replace(/\/+$/, '')
 })
 
 const section = computed(() => {

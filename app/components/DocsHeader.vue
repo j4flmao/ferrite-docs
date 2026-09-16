@@ -108,8 +108,13 @@ function getActiveSlug() {
           :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
           @click="toggleTheme"
         >
-          <Sun v-if="isDark" class="size-4" />
-          <Moon v-else class="size-4" />
+          <ClientOnly>
+            <Sun v-if="isDark" class="size-4" />
+            <Moon v-else class="size-4" />
+            <template #fallback>
+              <Moon class="size-4" />
+            </template>
+          </ClientOnly>
         </Button>
       </div>
     </div>
